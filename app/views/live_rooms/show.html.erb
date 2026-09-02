@@ -19,6 +19,8 @@
 </div>
 
 <% if user_signed_in? %>
+  <div id="user-id" data-user-id="<%= current_user.id %>" style="display: none;"></div>
+
   <div class="fixed-bottom bg-light py-3">
     <div class="container">
       <div class="form-group d-flex">

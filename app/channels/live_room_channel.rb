@@ -16,10 +16,10 @@ class LiveRoomChannel < ApplicationCable::Channel
       message.image.attach(io: StringIO.new(decoded_image), filename: "uploaded_image.png")
     end
 
-    # メッセージの保存、サインインしているユーザーのコンテキストでビューをレンダリング
     message.save!
-    template = ApplicationController.render_with_signed_in_user(
-      User.find(data["user_id"]),
+
+    # 左右の表示判定はクライアント側(JS)で行うため、current_user依存の偽装ログインは不要
+    template = ApplicationController.renderer.render(
       partial: "messages/message",
       locals: { message: message }
     )
