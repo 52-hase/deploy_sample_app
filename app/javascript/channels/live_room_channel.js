@@ -4,12 +4,14 @@ import consumer from "./consumer";
 function getLiveRoomIdFromUrl() {
   const url = window.location.pathname;
   const match = url.match(/live_rooms\/(\d+)/);
+
   return match ? match[1] : null;
 }
 
 // ログインユーザーIDを取得
 function getUserId() {
   const userIdElement = document.getElementById("user-id");
+
   return userIdElement ? userIdElement.dataset.userId : null;
 }
 
@@ -19,7 +21,6 @@ function applyMessagePosition(li) {
 
   if (!row) return;
 
-  // メッセージ表示時にログインユーザーIDを取得
   const currentUserId = getUserId();
 
   if (String(li.dataset.userId) === String(currentUserId)) {
@@ -27,6 +28,13 @@ function applyMessagePosition(li) {
   } else {
     row.classList.add("justify-content-start");
   }
+}
+
+// 画面に表示されているメッセージの左右を設定
+function applyAllMessagePositions() {
+  document
+    .querySelectorAll("#messages li[data-user-id]")
+    .forEach(applyMessagePosition);
 }
 
 const liveRoomId = getLiveRoomIdFromUrl();
@@ -51,25 +59,24 @@ if (liveRoomId) {
       received(message) {
         const messages = document.getElementById("messages");
 
-        if (messages) {
-          const ul = messages.querySelector("ul");
+        if (!messages) return;
 
-          if (ul) {
-            // 受け取ったメッセージを追加
-            ul.insertAdjacentHTML("beforeend", message);
+        const ul = messages.querySelector("ul");
 
-            // 追加したメッセージの左右を設定
-            const lastLi = ul.lastElementChild;
+        if (!ul) return;
 
-            if (lastLi) {
-              applyMessagePosition(lastLi);
-            }
-          }
+        // 受け取ったメッセージを追加
+        ul.insertAdjacentHTML("beforeend", message);
+
+        // 追加したメッセージの左右を設定
+        const lastLi = ul.lastElementChild;
+
+        if (lastLi) {
+          applyMessagePosition(lastLi);
         }
       },
 
       speak(content, image = null) {
-        // 送信時にログインユーザーIDを取得
         const userId = getUserId();
 
         return this.perform("speak", {
@@ -82,16 +89,16 @@ if (liveRoomId) {
     }
   );
 
-  document.addEventListener("DOMContentLoaded", function () {
-    // 初期表示されているメッセージの左右を設定
-    document
-      .querySelectorAll("#messages li[data-user-id]")
-      .forEach(applyMessagePosition);
+  // Turboでページが表示されたとき
+  document.addEventListener("turbo:load", function () {
+    applyAllMessagePositions();
 
     const input = document.getElementById("chat-input");
     const imageInput = document.getElementById("chat-image");
     const button = document.getElementById("button");
     const chatImageLabel = document.getElementById("chat-image-label");
+
+    if (!input || !imageInput || !button || !chatImageLabel) return;
 
     // 画像が選択されたときにラベルを更新
     imageInput.addEventListener("change", function () {
@@ -106,7 +113,6 @@ if (liveRoomId) {
       const file = imageInput.files[0];
 
       if (file) {
-        // 画像をBase64に変換して送信
         const reader = new FileReader();
 
         reader.onload = function (event) {
@@ -116,7 +122,6 @@ if (liveRoomId) {
 
         reader.readAsDataURL(file);
       } else {
-        // テキストだけ送信
         App.room.speak(content);
       }
 
