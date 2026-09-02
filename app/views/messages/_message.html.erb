@@ -1,7 +1,7 @@
-<li class="list-group-item bg-transparent border-0">
+<li class="list-group-item bg-transparent border-0" data-user-id="<%= message.user_id %>">
   <div class="card bg-transparent border-0">
     <div class="card-body">
-      <div class="d-flex align-items-start <%= message.user == current_user ? 'justify-content-end' : 'justify-content-start' %>">
+      <div class="d-flex align-items-start message-row">
         <% if message.user.avatar.attached? %>
           <img class="rounded-circle img-thumbnail" src="<%= url_for(message.user.avatar) %>" style="width: 50px; height: 50px; object-fit: cover;">
         <% else %>
@@ -9,12 +9,11 @@
             <%= message.user.name[0].upcase %>
           </div>
         <% end %>
-        
-        <!-- 吹き出し -->
+
         <div style="max-width: 50%;">
           <div class="text-white">
             <%= message.user.name %>
-            <span style="color: rgba(108, 117, 125, 10); margin-left: 0.5rem;"><%= message.created_at.strftime("%Y-%m-%d %H:%M") %></span> <!-- 透過グレーにする -->
+            <span style="color: rgba(108, 117, 125, 10); margin-left: 0.5rem;"><%= message.created_at.strftime("%Y-%m-%d %H:%M") %></span>
           </div>
           <div class="message-bubble mt-2">
             <div class="card-text" style="color: black; white-space: pre-wrap;"><%= message.content %></div>
