@@ -19,7 +19,10 @@ function applyMessagePosition(li) {
 
   if (!row) return;
 
-  if (String(li.dataset.userId) === String(userId)) {
+  // メッセージ表示時にログインユーザーIDを取得
+  const currentUserId = getUserId();
+
+  if (String(li.dataset.userId) === String(currentUserId)) {
     row.classList.add("justify-content-end");
   } else {
     row.classList.add("justify-content-start");
@@ -27,25 +30,24 @@ function applyMessagePosition(li) {
 }
 
 const liveRoomId = getLiveRoomIdFromUrl();
-const userId = getUserId();
 const App = {};
 
-// LiveRoomChannelに接続
 if (liveRoomId) {
   App.room = consumer.subscriptions.create(
-    { channel: "LiveRoomChannel", live_room_id: liveRoomId },
     {
-      // 接続成功時
+      channel: "LiveRoomChannel",
+      live_room_id: liveRoomId
+    },
+
+    {
       connected() {
         console.log("Connected to LiveRoomChannel");
       },
 
-      // 接続切断時
       disconnected() {
         console.log("Disconnected from LiveRoomChannel");
       },
 
-      // メッセージを受信
       received(message) {
         const messages = document.getElementById("messages");
 
@@ -53,10 +55,10 @@ if (liveRoomId) {
           const ul = messages.querySelector("ul");
 
           if (ul) {
-            // 受け取ったHTMLを追加
+            // 受け取ったメッセージを追加
             ul.insertAdjacentHTML("beforeend", message);
 
-            // 追加したメッセージの左右を判定
+            // 追加したメッセージの左右を設定
             const lastLi = ul.lastElementChild;
 
             if (lastLi) {
@@ -66,8 +68,10 @@ if (liveRoomId) {
         }
       },
 
-      // メッセージを送信
       speak(content, image = null) {
+        // 送信時にログインユーザーIDを取得
+        const userId = getUserId();
+
         return this.perform("speak", {
           message: content,
           image: image,
@@ -78,10 +82,8 @@ if (liveRoomId) {
     }
   );
 
-  // HTMLの読み込み完了後に処理
   document.addEventListener("DOMContentLoaded", function () {
-
-    // 初期表示されているメッセージの左右を判定
+    // 初期表示されているメッセージの左右を設定
     document
       .querySelectorAll("#messages li[data-user-id]")
       .forEach(applyMessagePosition);
@@ -91,20 +93,20 @@ if (liveRoomId) {
     const button = document.getElementById("button");
     const chatImageLabel = document.getElementById("chat-image-label");
 
-    // 画像選択時にラベルを更新
+    // 画像が選択されたときにラベルを更新
     imageInput.addEventListener("change", function () {
       if (imageInput.files.length > 0) {
         chatImageLabel.textContent = "画像が添付されています";
       }
     });
 
-    // 送信ボタンをクリックしたとき
+    // 送信ボタン
     button.addEventListener("click", function () {
       const content = input.value;
       const file = imageInput.files[0];
 
       if (file) {
-        // 画像をBase64形式に変換して送信
+        // 画像をBase64に変換して送信
         const reader = new FileReader();
 
         reader.onload = function (event) {
@@ -114,11 +116,11 @@ if (liveRoomId) {
 
         reader.readAsDataURL(file);
       } else {
-        // テキストのみ送信
+        // テキストだけ送信
         App.room.speak(content);
       }
 
-      // 入力欄と画像をリセット
+      // 入力欄をリセット
       input.value = "";
       imageInput.value = "";
       chatImageLabel.textContent = "画像";
